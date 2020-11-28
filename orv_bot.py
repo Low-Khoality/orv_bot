@@ -6,8 +6,6 @@ from settings import TOKEN
 BOT_PREFIX = ("?", "!")
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
-
-
 async def list_servers():
     await bot.wait_until_ready()
     while not bot.is_closed():
