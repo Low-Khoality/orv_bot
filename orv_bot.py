@@ -4,18 +4,10 @@ from discord.ext import commands
 from settings import TOKEN
 import os
 
-
 BOT_PREFIX = ("?", "!")
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
-@bot.event
-async def on_ready():
-    print('Logged in as')
-    print(bot.user.name)
-    print('------')
-    print('Bot is now working!')
-    await bot.change_presence(activity=discord.Streaming(name="the scenarios", url="https://www.twitch.tv/someepicgamer22"))
-
+# command for testing embeds
 @bot.command()
 async def testembed(ctx):
     embed = discord.Embed(title="Title", description="Description", color=discord.Color.red())
@@ -45,9 +37,10 @@ async def list_servers():
 for cog in os.listdir("./cogs"):
     if cog.endswith(".py"):
         try:
-            bot.load_extension(f'cogs.{cog[:-3]}')
+            cog = f"cogs.{cog.replace('.py', '')}"
+            bot.load_extension(cog)
         except Exception as e:
-            print(f'{cog[:-3]} cannot be loaded:')
+            print(f'{cog} cannot be loaded:')
             raise e
 
 
