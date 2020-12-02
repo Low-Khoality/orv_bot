@@ -3,12 +3,27 @@ import asyncio
 from discord.ext import commands
 from settings import TOKEN
 import os
+import mysql.connector
+import json
 
-BOT_PREFIX = ("?", "!")
-bot = commands.Bot(command_prefix=BOT_PREFIX)
+def get_prefix(bot, message):
+    if not message.guild:
+        return commands.when_mentioned_or("o", "O")(bot, message)
 
+    with open("prefixes.json", 'r') as f:
+        prefixes = json.load(f)
+
+    if str(message.guild.id) not in prefixes:
+        return commands.when_mentioned_or("o", "O")(bot, message)
+
+    prefix = prefixes[str(message.guild.id)]
+    return commands.when_mentioned_or(prefix, prefix.lower(), prefix.upper(), "o", "O")(bot, message)
+
+
+bot = commands.Bot(command_prefix=get_prefix, help_command=None, case_insensitive=True)
 # command for testing embeds
-@bot.command()
+@bot.command(hidden=True,
+             aliases=["embedt"])
 async def testembed(ctx):
     embed = discord.Embed(title="Title", description="Description", color=discord.Color.red())
     embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
@@ -22,7 +37,6 @@ async def testembed(ctx):
     embed.add_field(name="Field 4", value="value 4", inline=False)
 
     await ctx.send(embed=embed)
-
 
 # lists the servers
 async def list_servers():
