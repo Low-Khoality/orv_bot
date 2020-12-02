@@ -1,10 +1,17 @@
 import discord
 import asyncio
 from discord.ext import commands
-from settings import TOKEN
+from settings import TOKEN, DB_HOST, DB_PASS, DB_USER
 import os
 import mysql.connector
 import json
+
+mydb = mysql.connector.connect(
+    host=DB_HOST,
+    user=DB_USER,
+    password=DB_PASS,
+)
+
 
 def get_prefix(bot, message):
     if not message.guild:
