@@ -37,14 +37,7 @@ class Events (commands.Cog):
     async def on_mention(self, ctx):
         print("mentioned")
 
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx , error):
-        if isinstance(error, commands.CommandNotFound):
-            return
-        if isinstance(error, commands.CheckFailure):
-            msg = await ctx.send("You don't have the permission to do that!")
-            await msg.delete(delay=3)
-        print(error)
+
 
 def setup(bot):
     bot.add_cog(Events(bot))
