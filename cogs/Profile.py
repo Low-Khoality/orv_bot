@@ -27,7 +27,9 @@ class Profile(commands.Cog):
     async def balance(self, ctx):
         coins = self.get_coins(ctx.author.id)
         if coins is not None:
-            embed = discord.Embed(title=f"[{get_user_type(ctx.author.id)} **{ctx.author.name}** you have obtained __{coins}__ coins!]", color=discord.Color.from_rgb(130, 234, 255))
+            embed = discord.Embed(description=f"**Coins possessed:** {coins}", color=discord.Color.from_rgb(130, 234, 255))
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+            # embed = discord.Embed(title=f"[{get_user_type(ctx.author.id)} **{ctx.author.name}** you have obtained __{coins}__ coins!]", color=discord.Color.from_rgb(130, 234, 255))
             await ctx.send(embed=embed)
         else:
             await self.error.not_registered_error(ctx, "coins")
@@ -105,9 +107,9 @@ class Profile(commands.Cog):
             block1=f"{addition} **Name:** {member.name}\n**Level:** {user_info[11]}, [{user_info[12]}/2680 EXP]"
 
             if user_info[0] == "Constellation":
-                block1 += f"\n**Constellation Modifier:** *Architect of revelation*"
+                block1 += f"\n**Constellation Modifier:** *Architect of revelation*"  # placeholder value
             elif user_info[0] == "Incarnation":
-                block1 += f"\n**Star Backing:** N/A"
+                block1 += f"\n**Constellation sponsor:** N/A"  # placeholder value
             if user_info[1]:
                 block1 += f"\n**Nebula Backing:** {user_info[1]}"
 
