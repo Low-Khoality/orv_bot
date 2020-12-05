@@ -18,9 +18,20 @@ def connect_database():
 
 db = connect_database()
 
-def get_prefix(bot, message):
+def get_prefix2(ctx):
+    try:
+        with db.cursor() as cursor:
+            sql = "SELECT `prefix` FROM `prefixes` WHERE `guild_id`=%s"
+            cursor.execute(sql, (ctx.guild.id,))
+            prefix = cursor.fetchone()
+            current_prefix = prefix['prefix']
+            return current_prefix
+    except Exception as e:
+        print(f'Error looking up prefix 2: {e}')
+
+def get_prefix1(bot, message):
     if not message.guild:
-        return commands.when_mentioned_or("o", "O", "o ", "O ")(bot, message)
+        return commands.when_mentioned_or("o", "O")(bot, message)
     try:
         with db.cursor() as cursor:
             sql = "SELECT `prefix` FROM `prefixes` WHERE `guild_id`=%s"
@@ -31,15 +42,15 @@ def get_prefix(bot, message):
                     sql = "INSERT INTO `prefixes` (`guild_id`, `prefix`) VALUES (%s, %s)"
                     cursor.execute(sql, (message.guild.id, "o"))
                 db.commit()
-                return commands.when_mentioned_or("o", "O", "o ", "O ")(bot, message)
+                return commands.when_mentioned_or("o", "O")(bot, message)
             else:
                 pre = prefix['prefix']
-                return commands.when_mentioned_or(pre, pre.lower(), pre.upper(), f"{pre.lower()} ", f"{pre.upper()} ", "o", "O", "o ", "O ")(bot, message)
+                return commands.when_mentioned_or(pre, pre.lower(), pre.upper(), f"{pre.lower()} ", f"{pre.upper()} ", "o")(bot, message)
     except Exception as e:
         print(f'Error looking up prefix 1: {e}')
 
 
-bot = commands.Bot(command_prefix=get_prefix, help_command=None, case_insensitive=True)
+bot = commands.Bot(command_prefix=get_prefix1, help_command=None, case_insensitive=True)
 
 
 def get_user(user_id):
@@ -73,16 +84,13 @@ def get_user_type(user_id):
 
 def add_user_to_db(member):
     if get_user(member.id):
-        user_type = get_user_type(member.id)
-        embed = discord.Embed(title="Error", description=f"{user_type} **{member.name}**, you are already registered with the bot!", color=discord.Color.red())
-        embed.set_footer(text="if you need help, please type ohelp")
-        return embed
+        return False
     try:
         with db.cursor() as cursor:
             sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None))
-            
         db.commit()
+        return True
     except Exception as e:
         print(f"Error adding user: {e}")
 
