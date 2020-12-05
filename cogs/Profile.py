@@ -26,7 +26,7 @@ class Profile(commands.Cog):
                       usage=["[Example] oc"])
     async def balance(self, ctx):
         coins = self.get_coins(ctx.author.id)
-        if coins:
+        if coins is not None:
             embed = discord.Embed(title=f"[{get_user_type(ctx.author.id)} **{ctx.author.name}** you have obtained __{coins}__ coins!]", color=discord.Color.from_rgb(130, 234, 255))
             await ctx.send(embed=embed)
         else:

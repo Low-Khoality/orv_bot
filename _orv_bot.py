@@ -87,8 +87,8 @@ def add_user_to_db(member):
         return False
     try:
         with db.cursor() as cursor:
-            sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None))
+            sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation, coins) VALUES (%s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None, 0))
         db.commit()
         return True
     except Exception as e:
