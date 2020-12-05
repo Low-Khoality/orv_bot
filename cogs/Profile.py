@@ -23,7 +23,13 @@ class Profile(commands.Cog):
     async def get_user_info(self, user_id):
         try:
             with db.cursor() as cursor:
-                sql = "SELECT players.player_type, players.nebula, players.overall_evaluation, personal_attributes.attribute, personal_attributes.attribute_rating, personal_skills.personal_skills, personal_skills.skill_level, general_skills.stamina, general_skills.strength, general_skills.agility, general_skills.magic, general_skills.level, general_skills.exp_points FROM (((players INNER JOIN personal_attributes ON players.user_id=personal_attributes.user_id) INNER JOIN personal_skills ON players.user_id=personal_skills.user_id) INNER JOIN general_skills ON players.user_id=general_skills.user_id) WHERE players.user_id=%s"
+                sql = "SELECT players.player_type, players.nebula, players.overall_evaluation, " \
+                      "personal_attributes.attribute, personal_attributes.attribute_rating, " \
+                      "personal_skills.personal_skills, personal_skills.skill_level, " \
+                      "general_skills.stamina, general_skills.strength, general_skills.agility, general_skills.magic, general_skills.level, general_skills.exp_points " \
+                      "FROM (((players INNER JOIN personal_attributes ON players.user_id=personal_attributes.user_id) " \
+                      "INNER JOIN personal_skills ON players.user_id=personal_skills.user_id) " \
+                      "INNER JOIN general_skills ON players.user_id=general_skills.user_id) WHERE players.user_id=%s"
                 cursor.execute(sql, (user_id))
                 result = cursor.fetchone()
                 if not result:
