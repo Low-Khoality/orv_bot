@@ -1,12 +1,24 @@
 import discord
 from discord.ext import commands
-from orv_bot._orv_bot import db
+from orv_bot._orv_bot import db, add_user_to_db
 from datetime import datetime
 
 class Profile(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 
+    @commands.command(name="start",
+                 enabled=True,
+                 brief="Enter the scenarios")
+    async def start_playing(self, ctx):
+        embed = add_user_to_db(ctx.author)
+        if embed:
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(title="Welcome!🎉",
+                                  description=f"Incarnation {ctx.author.mention}, welcome to PLACEHOLDER")
+            embed.add_field(name="\u200b", value="PLACEHOLDER", inline=False)
+            await ctx.send(embed=embed)
 
     async def get_user_info(self, user_id):
         try:

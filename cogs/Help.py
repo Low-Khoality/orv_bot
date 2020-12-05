@@ -41,45 +41,40 @@ class Help (commands.Cog):
 
     @commands.command()
     async def help(self, ctx, *, cmd: str=None):
-        # as long as nothing is passes through args this block should run
-        cogs = []
-        for cog in os.listdir("./cogs"):
-            if cog.endswith(".py"):
-                try:
-                    cog = f"{cog.replace('.py', '')}"
-                    if cog not in ["Events", "Help"]:
-                        cogs.append([self.bot.get_cog(cog), cog])
-                except Exception as e:
-                    print(f'{cog} cannot be loaded:')
-                    raise e
-        print(cogs)
-        print(cogs[0][1])
-
-        owner = await has_permissions(ctx=ctx)
         if cmd is None:
-            embed = discord.Embed(title="Bot commands", color=discord.Color.from_rgb(130, 234, 255))
-            embed.add_field(name="Profile", value="stats profile start", inline=True)
-            embed.add_field(name="Testing", value="testembed", inline=True)
-            # this block should only run if they have admin
-            if owner is True:
-                embed.add_field(name="Settings", value="prefix", inline=True)
-            embed.add_field(name="Misc", value="invite", inline=True)
-            embed.add_field(name="No Category", value="help", inline=True)
-            await ctx.send(embed=embed)
+            owner = await has_permissions(ctx=ctx)
+            # as long as nothing is passes through args this block should run
+            cogs = []
+            cog_names = []
+            commands = []
+            command_names = []
+
+            cog_list = ["Profile",
+                        "Test",
+                        "Settings",
+                        "Misc"]
+
+            for cog in cog_list:
+                cog_names.append(cog)
+                cogs.append(self.bot.get_cog(cog))
+                commands.append(self.bot.get_cog(cog).get_commands())
+
+            for i in range(len(commands)):
+                temp = ""
+                for c in commands[i]:
+                    temp += f"{c.name} | "
+                command_names.append(temp)
+
+            embed1 = discord.Embed(title="Bot commands", color=discord.Color.from_rgb(130, 234, 255))
+            for i in range(len(cogs)):
+                if owner is True and i == 2:
+                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2])
+                elif i != 2:
+                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2])
+            await ctx.send(embed=embed1)
+
         elif cmd:
             await self.get_help(ctx, cmd)
-
-
-
-    # @help.error
-    # async def help_error(self, ctx, error, *, cmd: str=None):
-    #     if isinstance(error, commands.CheckFailure) and cmd is None:
-    #         embed = discord.Embed(title="Bot commands", color=discord.Color.from_rgb(236, 64, 64))
-    #         embed.add_field(name="Testing", value="testembed", inline=True)
-    #         embed.add_field(name="No Category", value="help", inline=True)
-    #         print(cmd)
-    #         await ctx.send(embed=embed)
-
 
 def setup(bot):
     bot.add_cog(Help(bot))

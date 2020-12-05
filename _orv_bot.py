@@ -41,19 +41,6 @@ def get_prefix(bot, message):
 
 bot = commands.Bot(command_prefix=get_prefix, help_command=None, case_insensitive=True)
 
-@bot.command(name="start",
-             enabled=True,
-             brief="Enter the scenarios")
-async def start_playing(ctx):
-    embed = add_user_to_db(ctx.author)
-    if embed:
-        await ctx.send(embed=embed)
-    else:
-        embed = discord.Embed(title="Welcome!🎉", description=f"Incarnation {ctx.author.mention}, welcome to PLACEHOLDER")
-        embed.add_field(name="\u200b", value="PLACEHOLDER", inline=False)
-        await ctx.send(embed=embed)
-
-
 
 def get_user(user_id):
     try:
