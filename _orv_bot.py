@@ -18,18 +18,8 @@ def connect_database():
 
 db = connect_database()
 
-def get_prefix2(ctx):
-    try:
-        with db.cursor() as cursor:
-            sql = "SELECT `prefix` FROM `prefixes` WHERE `guild_id`=%s"
-            cursor.execute(sql, (ctx.guild.id,))
-            prefix = cursor.fetchone()
-            current_prefix = prefix['prefix']
-            return current_prefix
-    except Exception as e:
-        print(f'Error looking up prefix 2: {e}')
 
-def get_prefix1(bot, message):
+def get_prefix(bot, message):
     if not message.guild:
         return commands.when_mentioned_or("o", "O")(bot, message)
     try:
@@ -50,8 +40,7 @@ def get_prefix1(bot, message):
         print(f'Error looking up prefix 1: {e}')
 
 
-bot = commands.Bot(command_prefix=get_prefix1, help_command=None, case_insensitive=True)
-
+bot = commands.Bot(command_prefix=get_prefix, help_command=None, case_insensitive=True)
 
 def get_user(user_id):
     try:
@@ -66,30 +55,13 @@ def get_user(user_id):
     except Exception as e:
         print(f"Error looking up userid {user_id}\n{e}")
 
-
-def get_user_type(user_id):
-    try:
-        with db.cursor() as cursor:
-            sql = "SELECT player_type FROM `players` WHERE `user_id`=%s"
-            cursor.execute(sql, (user_id,))
-            result = cursor.fetchone()
-            user_type = result["player_type"]
-            if not result:
-                print(f"User does not exist: {user_id}")
-            else:
-                return user_type
-    except Exception as e:
-        print(f"Error looking up userid {user_id}\n{e}")
-
-
 def add_user_to_db(member):
     if get_user(member.id):
         return False
     try:
         with db.cursor() as cursor:
-            sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None))
-        db.commit()
+            sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation, coins) VALUES (%s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None, 0))
         return True
     except Exception as e:
         print(f"Error adding user: {e}")
@@ -105,14 +77,17 @@ async def list_servers():
         await asyncio.sleep(600)
 
 # removes the .py from files in the cog folder for loading
+bot.load_extension("cogs.Get")
+bot.load_extension("cogs.Error")
 for cog in os.listdir("./cogs"):
-    if cog.endswith(".py"):
-        try:
-            cog = f"cogs.{cog.replace('.py', '')}"
-            bot.load_extension(cog)
-        except Exception as e:
-            print(f'{cog} cannot be loaded:')
-            raise e
+    if cog != "Get.py" and cog != "Error.py":
+        if cog.endswith(".py"):
+            try:
+                cog = f"cogs.{cog.replace('.py', '')}"
+                bot.load_extension(cog)
+            except Exception as e:
+                print(f'{cog} cannot be loaded:')
+                raise e
 
 bot.loop.create_task(list_servers())
 bot.run(TOKEN)
