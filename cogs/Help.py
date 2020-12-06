@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from orv_bot._orv_bot import get_prefix2
 
 async def has_permissions(ctx):
     return ctx.message.author.guild_permissions.administrator
@@ -9,6 +8,7 @@ async def has_permissions(ctx):
 class Help (commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.get = self.bot.get_cog("_Get")
 
     async def get_help(self, ctx, command: str):
         cmd = self.bot.get_command(command)
@@ -35,7 +35,7 @@ class Help (commands.Cog):
             return
         else:
             embed = discord.Embed(title=title, description=f"{brief}{usage}", color=discord.Color.from_rgb(130, 234, 255))
-            embed.set_footer(text=f"Use {get_prefix2(ctx)}help <command or command group name> for more info on a command")
+            embed.set_footer(text=f"Use {self.get.get_prefix(ctx)}help <command or command group name> for more info on a command")
             await ctx.send(embed=embed)
 
     @commands.command()
