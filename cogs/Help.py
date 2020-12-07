@@ -8,7 +8,7 @@ async def has_permissions(ctx):
 class Help (commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.get = self.bot.get_cog("_Get")
+        self.get = self.bot.get_cog("Get")
 
     async def get_help(self, ctx, command: str):
         cmd = self.bot.get_command(command)

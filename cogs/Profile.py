@@ -80,7 +80,7 @@ class Profile(commands.Cog):
             embed.add_field(name=f'**Personal Skill(s):** ', value=f'{personal_skills[:-2]}', inline=False)
 
             general_skills = self.get.get_general_skills(ctx.author.id)
-            embed.add_field(name=f'**Overall Stats:** ', value=f"[Stamina Lv.{general_skills[0]}], [Strength Lv.{general_skills[1]}],\n[Agility Lv.{general_skills[2]}], [Magic Power Lv.{general_skills[3]}", inline=False)
+            embed.add_field(name=f'**Overall Stats:** ', value=f"[Stamina Lv.{general_skills[0]}], [Strength Lv.{general_skills[1]}],\n[Agility Lv.{general_skills[2]}], [Magic Power Lv.{general_skills[3]}]", inline=False)
 
             await ctx.send(embed=embed)
         else:
