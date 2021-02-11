@@ -65,10 +65,11 @@ class Nebulas(commands.Cog):
         else:
             await self.error.not_registered_error(ctx, "nebula")
 
-    @nebula.command()
+    @nebula.command(brief="Create your own nebula")
     async def create(self, ctx, *, nebula: str = None):
         if self.get.get_user(ctx.author.id) is None:
             return
+
         if nebula is None:
             return await self.error.get_error(ctx, "You must enter a name for your nebula", "nebula create")
 
@@ -103,6 +104,8 @@ class Nebulas(commands.Cog):
 
     @nebula.command()
     async def view(self, ctx):
+        if self.get.get_user(ctx.author.id) is None:
+            return
         await ctx.send("second command layer")
         pass
 
