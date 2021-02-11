@@ -56,7 +56,6 @@ class Help (commands.Cog):
             command_names = []
 
             cog_list = ["Profile",
-                        "Test",
                         "Settings",
                         "Misc",
                         "Nebulas"]
