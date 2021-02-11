@@ -26,7 +26,7 @@ class Get (commands.Cog):
                 result = cursor.fetchone()
                 nebula = result["nebula"]
                 if not result:
-                    print(f"User does not exist: {user_id}")
+                    print(f"User is not in a nebula: {user_id}")
                 else:
                     return nebula
         except Exception as e:
