@@ -40,7 +40,7 @@ class Help (commands.Cog):
                 brief = ". . ."
                 if command.brief:
                     brief = command.brief
-                embed.add_field(name=command, value=brief)
+                embed.add_field(name=command, value=brief, inline=False)
         except:
             pass
         await ctx.send(embed=embed)
@@ -72,11 +72,12 @@ class Help (commands.Cog):
                 command_names.append(temp)
 
             embed1 = discord.Embed(title="Bot commands", color=discord.Color.from_rgb(130, 234, 255))
+
             for i in range(len(cogs)):
                 if owner is True and i == 2:
-                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2])
+                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2], inline=True)
                 elif i != 2:
-                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2])
+                    embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2], inline=True)
             await ctx.send(embed=embed1)
 
         elif cmd:
