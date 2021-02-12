@@ -73,6 +73,10 @@ class Nebulas(commands.Cog):
         if nebula is None:
             return await self.error.get_error(ctx, "You must enter a name for your nebula", "nebula create")
 
+        in_nebula = self.get.get_nebula(ctx.author.id)
+        if in_nebula is not None:
+            return await self.error.get_error(ctx, f"{self.get.get_user_type(ctx.author.id)} **{ctx.author.name}**, You are already in a nebula!", "nebula create")
+
         ' '.join(nebula.split())
         new_nebula = self.new_nebula(nebula)
         try:
