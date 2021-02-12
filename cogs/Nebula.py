@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 from orv_bot._orv_bot import db, add_user_to_db
@@ -70,12 +72,12 @@ class Nebulas(commands.Cog):
         if self.get.get_user(ctx.author.id) is None:
             return
 
-        if nebula is None:
-            return await self.error.get_error(ctx, "You must enter a name for your nebula", "nebula create")
-
         in_nebula = self.get.get_nebula(ctx.author.id)
         if in_nebula is not None:
             return await self.error.get_error(ctx, f"{self.get.get_user_type(ctx.author.id)} **{ctx.author.name}**, You are already in a nebula!", "nebula create")
+
+        if nebula is None:
+            return await self.error.get_error(ctx, "You must enter a name for your nebula", "nebula create")
 
         ' '.join(nebula.split())
         new_nebula = self.new_nebula(nebula)
@@ -95,16 +97,62 @@ class Nebulas(commands.Cog):
             return await self.error.get_error(ctx, "This guild already has a nebula", "nebula create")
 
         if new_nebula is False:
-            return await self.error.get_error(ctx,f"the nebula \"{nebula}\" is already taken ", "nebula create")
+            return await self.error.get_error(ctx,f"the nebula \"{nebula}\" is already taken", "nebula create")
+
+        embed = discord.Embed(title="Confirmation",
+                              description=f"{self.get.get_user_type(ctx.author.id)}, are you sure you want to create the **{nebula}** nebula for __250,000__ coins?",
+                              color=discord.Color.from_rgb(130, 234, 255))
+        msg = await ctx.send(embed=embed)
+
+        await msg.add_reaction("✅")
+
+        await asyncio.sleep(.35)
+
+        await msg.add_reaction("❌")
+
+        def check(reaction, user):
+            return ctx.author == user and str(reaction.emoji) in ["✅", "❌"]
 
         try:
-            with db.cursor() as cursor:
-                sql = "INSERT INTO `nebulas` (nebula, guild_id, message, leader, vice_leader) VALUES (%s, %s, %s, %s, %s)"
-                cursor.execute(sql, (nebula, ctx.guild.id, None, ctx.author.id, None,))
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=5.0, check=check)
+        except asyncio.TimeoutError:
+            await msg.delete(delay=0)
+            msg = await ctx.send(f"{ctx.author.mention}, you waited too long")
+            await msg.delete(delay=3)
+        else:
+            if str(reaction.emoji)== "✅":
 
-                db.commit()
-        except Exception as e:
-            print(f"Error adding Nebula: {e}")
+                coin = self.get.get_coins(ctx.author.id)
+                if coin < 250000:
+                    await msg.delete(delay=0)
+                    return await self.error.get_error(ctx,
+                                                      f"{self.get.get_user_type(ctx.author.id)}, you do not have enough coins to fund a nebula! You currently have __{format(coin, ',d')}__ coins. Nebulas require __250,000__ coins to fund",
+                                                      "nebula create")
+
+                try:
+                    with db.cursor() as cursor:
+                        sql = "INSERT INTO `nebulas` (nebula, guild_id, message, leader, vice_leader) VALUES (%s, %s, %s, %s, %s)"
+                        cursor.execute(sql, (nebula, ctx.guild.id, None, ctx.author.id, None,))
+
+                        sql = "INSERT INTO `nebula_members` (nebula, member_ids, nebula_rank, total_members) VALUES (%s, %s, %s, %s)"
+                        cursor.execute(sql, (nebula, ctx.author.id, "leader", 1))
+
+                        sql = f"UPDATE players SET nebula=%s, coins=%s WHERE user_id=%s"
+                        cursor.execute(sql, (nebula, self.get.get_coins(ctx.author.id)-250000, ctx.author.id))
+
+                        db.commit()
+
+                        embed = discord.Embed(title="Congratulations 🎉",
+                                              description=f"{self.get.get_user_type(ctx.author.id)} {ctx.author.mention}, you are responsible for the birth of a nebula. You may now challenge the scenarios with other incarnations and constellations as a nebula.",
+                                              color=discord.Color.from_rgb(130, 234, 255))
+                        embed.add_field(name="\u200b",
+                                        value=f"*do `{self.get.get_prefix(ctx)}help nebula` for information on commands regarding nebulas*",
+                                        inline=False)
+                        await ctx.send(embed=embed)
+                except Exception as e:
+                    print(f"Error adding Nebula: {e}")
+            elif str(reaction.emoji)=="❌":
+                await msg.delete(delay=0)
 
     @nebula.command()
     async def view(self, ctx):
