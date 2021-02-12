@@ -68,15 +68,17 @@ class Help (commands.Cog):
             for i in range(len(commands)):
                 temp = ""
                 for c in commands[i]:
-                    temp += f"{c.name} | "
+                    if c.hidden==False:
+                        temp += f"{c.name} | "
                 command_names.append(temp)
 
             embed1 = discord.Embed(title="Bot commands", color=discord.Color.from_rgb(130, 234, 255))
 
+            # if owner is true then show the Settings cog (i == 2) else dont show it
             for i in range(len(cogs)):
-                if owner is True and i == 2:
+                if owner is True and i == 1:
                     embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2], inline=True)
-                elif i != 2:
+                elif i != 1:
                     embed1.add_field(name=cog_names[i], value=(command_names[i])[:-2], inline=True)
             await ctx.send(embed=embed1)
 
