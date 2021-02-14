@@ -17,7 +17,7 @@ class Profile(commands.Cog):
     async def balance(self, ctx):
         coins = self.get.get_coins(ctx.author.id)
         if coins is not None:
-            embed = discord.Embed(description=f"**Coins possessed:** {coins}", color=discord.Color.from_rgb(130, 234, 255))
+            embed = discord.Embed(description=f"**Coins possessed:** {format(coins, ',d')}", color=discord.Color.from_rgb(130, 234, 255))
             embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
             # embed = discord.Embed(title=f"[{get_user_type(ctx.author.id)} **{ctx.author.name}** you have obtained __{coins}__ coins!]", color=discord.Color.from_rgb(130, 234, 255))
             await ctx.send(embed=embed)
@@ -37,6 +37,7 @@ class Profile(commands.Cog):
                                   description=f"Incarnation {ctx.author.mention}, the free service of planetary system 8612 has been terminated. The main scenario starts now.",
                                   color=discord.Color.from_rgb(130, 234, 255))
             embed.add_field(name="\u200b", value="*Note: alting, macroing, exploting bugs, and cross-trading are **bannable** offenses.* \n*If you need an explanation on any of those terms, please join the support server*", inline=False)
+            embed.set_footer(text=f"Use <{self.get.get_prefix(ctx)}basics> and <{self.get.get_prefix(ctx)}help> for information on how to begin and the list of commands")
             await ctx.send(embed=embed)
 
     @commands.command(name="stats",
@@ -80,7 +81,7 @@ class Profile(commands.Cog):
             embed.add_field(name=f'**Personal Skill(s):** ', value=f'{personal_skills[:-2]}', inline=False)
 
             general_skills = self.get.get_general_skills(ctx.author.id)
-            embed.add_field(name=f'**Overall Stats:** ', value=f"[Stamina Lv.{general_skills[0]}], [Strength Lv.{general_skills[1]}],\n[Agility Lv.{general_skills[2]}], [Magic Power Lv.{general_skills[3]}", inline=False)
+            embed.add_field(name=f'**Overall Stats:** ', value=f"[Stamina Lv.{general_skills[0]}], [Strength Lv.{general_skills[1]}],\n[Agility Lv.{general_skills[2]}], [Magic Power Lv.{general_skills[3]}]", inline=False)
 
             await ctx.send(embed=embed)
         else:

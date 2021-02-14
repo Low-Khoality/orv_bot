@@ -19,6 +19,7 @@ def connect_database():
 db = connect_database()
 
 
+
 def get_prefix(bot, message):
     if not message.guild:
         return commands.when_mentioned_or("o", "O")(bot, message)
@@ -42,6 +43,7 @@ def get_prefix(bot, message):
 
 bot = commands.Bot(command_prefix=get_prefix, help_command=None, case_insensitive=True)
 
+
 def get_user(user_id):
     try:
         with db.cursor() as cursor:
@@ -62,6 +64,16 @@ def add_user_to_db(member):
         with db.cursor() as cursor:
             sql = "INSERT INTO `players` (user_id, first_seen, player_type, nebula, overall_evaluation, coins) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (member.id, member.joined_at, "Incarnation", None, None, 0))
+
+            sql = "INSERT INTO `personal_attributes` (user_id, attribute, attribute_rating) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (member.id, "PLACEHOLDER", "Ordinary"))
+
+            sql = "INSERT INTO `personal_skills` (user_id, personal_skills, skill_level) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (member.id, "PLACEHOLDER", 1))
+
+            sql = "INSERT INTO `general_skills` (user_id, stamina, strength, agility, magic, level, exp_points) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (member.id, 1, 1, 1, 1, 1, 0))
+            db.commit()
         return True
     except Exception as e:
         print(f"Error adding user: {e}")
