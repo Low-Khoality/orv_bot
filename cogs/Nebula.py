@@ -120,7 +120,7 @@ class Nebulas(commands.Cog):
             msg = await ctx.send(f"{ctx.author.mention}, you waited too long")
             await msg.delete(delay=3)
         else:
-            if str(reaction.emoji)== "✅":
+            if str(reaction.emoji) == "✅":
 
                 coin = self.get.get_coins(ctx.author.id)
                 if coin < 250000:
@@ -148,14 +148,16 @@ class Nebulas(commands.Cog):
                         embed.add_field(name="\u200b",
                                         value=f"*do `{self.get.get_prefix(ctx)}help nebula` for information on commands regarding nebulas*",
                                         inline=False)
+                        await msg.delete(delay=0)
                         await ctx.send(embed=embed)
                 except Exception as e:
                     print(f"Error adding Nebula: {e}")
-            elif str(reaction.emoji)=="❌":
+            elif str(reaction.emoji) == "❌":
                 await msg.delete(delay=0)
 
     @nebula.command()
-    async def view(self, ctx):
+    async def view(self, ctx, member: discord.Member = None):
+        member = ctx.author if not member else member
         if self.get.get_user(ctx.author.id) is None:
             return
         await ctx.send("second command layer")
