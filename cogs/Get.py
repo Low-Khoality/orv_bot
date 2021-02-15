@@ -142,6 +142,25 @@ class Get (commands.Cog):
         except Exception as e:
             print(f'Error looking up prefix 2: {e}')
 
+    async def get_member(self, ctx, inp):
+        try:
+            members = await ctx.guild.fetch_members(limit=None).flatten()
+            for i in range(len(members)):
+
+                # Find the minimum element in remaining
+                # unsorted array
+                min_idx = i
+                for j in range(i + 1, len(members)):
+                    if members[min_idx].name.lower() > members[j].name.lower():
+                        min_idx = j
+
+                        # Swap the found minimum element with
+                # the first element
+                members[i], members[min_idx] = members[min_idx], members[i]
+            member = [i for i in members if i.display_name.lower().startswith(inp.lower())][0]
+            return member
+        except Exception as e:
+            return
 
 def setup(bot):
     bot.add_cog(Get(bot))
