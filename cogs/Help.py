@@ -13,6 +13,10 @@ class Help (commands.Cog):
 
     async def get_help(self, ctx, command: str):
         cmd = self.bot.get_command(command)
+
+        if cmd.hidden==True:
+            return await self.error.get_error(ctx, f'No command called "{command}" found', "help")
+
         aliases = ""
         try:
             brief = ". . ."
