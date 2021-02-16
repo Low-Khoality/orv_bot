@@ -3,6 +3,7 @@ from orv_bot._orv_bot import db
 class Get (commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.error = self.bot.get_cog("Error")
 
     def get_general_skills(self, user_id):
         try:
@@ -144,23 +145,23 @@ class Get (commands.Cog):
 
     async def get_member(self, ctx, inp):
         try:
-            members = await ctx.guild.fetch_members(limit=None).flatten()
-            for i in range(len(members)):
-
-                # Find the minimum element in remaining
-                # unsorted array
-                min_idx = i
-                for j in range(i + 1, len(members)):
-                    if members[min_idx].name.lower() > members[j].name.lower():
-                        min_idx = j
-
-                        # Swap the found minimum element with
-                # the first element
-                members[i], members[min_idx] = members[min_idx], members[i]
-            member = [i for i in members if i.display_name.lower().startswith(inp.lower())][0]
+            member = await commands.MemberConverter().convert(ctx, inp)
             return member
         except Exception as e:
-            return
+            if isinstance(e, commands.MemberNotFound):
+                try:
+                    members = await ctx.guild.fetch_members(limit=None).flatten()
+                    for i in range(len(members)):
+                        min_idx = i
+                        for j in range(i + 1, len(members)):
+                            if members[min_idx].name.lower() > members[j].name.lower():
+                                min_idx = j
+                        members[i], members[min_idx] = members[min_idx], members[i]
+                    member = [i for i in members if i.display_name.lower().startswith(inp.lower())][0]
+                    return member
+                except Exception as e:
+                    print(f"error getting member\n{e}")
+                    return
 
 def setup(bot):
     bot.add_cog(Get(bot))
