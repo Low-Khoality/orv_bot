@@ -14,8 +14,11 @@ class Profile(commands.Cog):
                       enabled=True,
                       brief="Shows how many coins you currently have",
                       usage=["[Example] oc"])
-    async def balance(self, ctx, member: discord.Member = None):
-        member = ctx.author if not member else member
+    async def balance(self, ctx, member=None):
+        member = ctx.author if not member else await self.get.get_member(ctx, member)
+        if member is None:
+            return await self.error.get_error(ctx, f"user {member} not found", "coins")
+
         coins = self.get.get_coins(member.id)
         if coins is not None:
             embed = discord.Embed(description=f"**Coins possessed:** {format(coins, ',d')}", color=discord.Color.from_rgb(130, 234, 255))
@@ -46,8 +49,10 @@ class Profile(commands.Cog):
                       brief="Shows a players' stats",
                       aliases=["profile", "s"],
                       usage=["[Example] `os` -> Shows your stats", "[Example] `os @user` -> Shows another users profile"])
-    async def stats(self, ctx, member: discord.Member = None):
-        member = ctx.author if not member else member
+    async def stats(self, ctx, member=None):
+        member = ctx.author if not member else await self.get.get_member(ctx, member)
+        if member is None:
+            return await self.error.get_error(ctx, f"user {member} not found", "stats")
         if self.get.get_user(member.id):
             evaluation = self.get.get_evaluation(member.id)
             if evaluation:
@@ -89,6 +94,37 @@ class Profile(commands.Cog):
             await ctx.send(embed=embed)
         else:
             await self.error.not_registered_error(ctx, "stats")
+
+    @commands.command(enabled=True,
+                      brief="transfer coins to another incarnation or constellation",
+                      usage=["[Example] `ogive Uriel#9158 7942` -> gives 7942 to user \"Uriel\""])
+    async def give(self, ctx,  *args):
+        giver = ctx.author
+        member = await self.get.get_member(ctx, args[0])
+        amount = int(args[1])
+
+        if member is None:
+            return await self.error.get_error(ctx, f"user {args[0]} not found", "give")
+
+        if amount < 1:
+            return await self.error.get_error(ctx, f"you cannot transfer less than 1 coin to someone!", "give")
+
+        if amount > self.get.get_coins(giver.id):
+            return await self.error.get_error(ctx, f"you cannot transfer more coins than you own!", "give")
+
+        try:
+            with db.cursor() as cursor:
+                sql = f"UPDATE players SET coins=%s WHERE user_id=%s"
+                cursor.execute(sql, (self.get.get_coins(member.id) + amount, member.id))
+
+                sql = f"UPDATE players SET coins=%s WHERE user_id=%s"
+                cursor.execute(sql, (self.get.get_coins(giver.id)-amount, giver.id))
+
+                db.commit()
+        except Exception as e:
+            print(f"Error transferring {amount} coins to {member.name} [{member.id}] from {giver.name} [{giver.id}])\n{e}")
+            return await self.error.get_error(ctx, f"{member.name} is not registered!", "addcoins")
+
 
 
 
