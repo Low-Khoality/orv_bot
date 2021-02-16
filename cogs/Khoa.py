@@ -19,19 +19,13 @@ class Khoa (commands.Cog):
     @commands.check(is_khoa)
     async def give_gold(self, ctx, *args):
         if (len(args)) >= 2:
-            try:
-                member = await commands.MemberConverter().convert(ctx, args[0])
-            except Exception as e:
-                if isinstance(e, commands.MemberNotFound):
-                    member = await self.get.get_member(ctx, args[0])
-                    if member is None:
-                        print(f"Error updating coins")
-                        return await self.error.get_error(ctx, f"user {args[0]} not found", "addcoins")
+            member = await self.get.get_member(ctx, args[0])
             amount = int(args[1])
+            if member is None:
+                return await self.error.get_error(ctx, f"user {args[0]} not found", "addcoins")
         else:
             member = ctx.author
             amount = int(args[0])
-
         try:
             with db.cursor() as cursor:
                 sql = f"UPDATE players SET coins=%s WHERE user_id=%s"
