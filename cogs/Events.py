@@ -29,7 +29,7 @@ class Events (commands.Cog):
                     cursor.execute(sql, (message.guild.id,))
                     prefix = cursor.fetchone()
                     current_prefix = prefix['prefix']
-                    await message.channel.send(f"This server's prefix is `{current_prefix}` type `{current_prefix}prefix <new prefix here>` to change it")
+                    await message.channel.send(f"This server's prefix is `{current_prefix}` type `{current_prefix}prefix <new prefix here>` if you wish to change it")
             except Exception as e:
                 print(f'Error looking up prefix 3: {e}')
 
