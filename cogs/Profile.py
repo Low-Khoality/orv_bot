@@ -14,10 +14,10 @@ class Profile(commands.Cog):
                       enabled=True,
                       brief="Shows how many coins you currently have",
                       usage=["[Example] oc"])
-    async def balance(self, ctx, member=None):
-        member = ctx.author if not member else await self.get.get_member(ctx, member)
+    async def balance(self, ctx, inp=None):
+        member = ctx.author if not inp else await self.get.get_member(ctx, inp)
         if member is None:
-            return await self.error.get_error(ctx, f"user {member} not found", "coins")
+            return await self.error.get_error(ctx, f"User **{member}** not found", "coins")
 
         coins = self.get.get_coins(member.id)
         if coins is not None:
@@ -26,7 +26,11 @@ class Profile(commands.Cog):
             # embed = discord.Embed(title=f"[{get_user_type(ctx.author.id)} **{ctx.author.name}** you have obtained __{coins}__ coins!]", color=discord.Color.from_rgb(130, 234, 255))
             await ctx.send(embed=embed)
         else:
-            await self.error.not_registered_error(ctx, "coins")
+            if member is ctx.author:
+                await self.error.not_registered_error(ctx, "coins")
+            else:
+                await self.error.get_error(ctx, f"The user **{member.name}** is not registered to this bot!", "coins")
+
 
     @commands.command(name="start",
                  enabled=True,
@@ -49,10 +53,10 @@ class Profile(commands.Cog):
                       brief="Shows a players' stats",
                       aliases=["profile", "s"],
                       usage=["[Example] `os` -> Shows your stats", "[Example] `os @user` -> Shows another users profile"])
-    async def stats(self, ctx, member=None):
-        member = ctx.author if not member else await self.get.get_member(ctx, member)
+    async def stats(self, ctx, inp=None):
+        member = ctx.author if not inp else await self.get.get_member(ctx, inp)
         if member is None:
-            return await self.error.get_error(ctx, f"user {member} not found", "stats")
+            return await self.error.get_error(ctx, f"User **{inp}** not found", "stats")
         if self.get.get_user(member.id):
             evaluation = self.get.get_evaluation(member.id)
             if evaluation:
@@ -93,24 +97,31 @@ class Profile(commands.Cog):
 
             await ctx.send(embed=embed)
         else:
-            await self.error.not_registered_error(ctx, "stats")
+            if member is ctx.author:
+                await self.error.not_registered_error(ctx, "stats")
+            else:
+                await self.error.get_error(ctx, f"The user **{member.name}** is not registered to this bot!", "stats")
 
     @commands.command(enabled=True,
                       brief="transfer coins to another incarnation or constellation",
-                      usage=["[Example] `ogive Uriel#9158 7942` -> gives 7942 to user \"Uriel\""])
+                      usage=["[Example] `ogive Uriel#9158 7942` -> gives 7942 coins to user \"Uriel\""])
     async def give(self, ctx,  *args):
         giver = ctx.author
         member = await self.get.get_member(ctx, args[0])
         amount = int(args[1])
 
+        if self.get.get_user(member.id) is None:
+            return
+
+
         if member is None:
-            return await self.error.get_error(ctx, f"user {args[0]} not found", "give")
+            return await self.error.get_error(ctx, f"User **{args[0]}** not found", "give")
 
         if amount < 1:
-            return await self.error.get_error(ctx, f"you cannot transfer less than 1 coin to someone!", "give")
+            return await self.error.get_error(ctx, f"You can not transfer less than 1 coin to someone!", "give")
 
         if amount > self.get.get_coins(giver.id):
-            return await self.error.get_error(ctx, f"you cannot transfer more coins than you own!", "give")
+            return await self.error.get_error(ctx, f"You can not transfer more coins than you own!", "give")
 
         try:
             with db.cursor() as cursor:
@@ -121,9 +132,11 @@ class Profile(commands.Cog):
                 cursor.execute(sql, (self.get.get_coins(giver.id)-amount, giver.id))
 
                 db.commit()
+                embed = discord.Embed(title=f"Successfully transferred {amount} coins to **{member.name}**", color=discord.Color.from_rgb(130, 234, 255))
+                await ctx.send(embed=embed)
         except Exception as e:
             print(f"Error transferring {amount} coins to {member.name} [{member.id}] from {giver.name} [{giver.id}])\n{e}")
-            return await self.error.get_error(ctx, f"{member.name} is not registered!", "addcoins")
+            return await self.error.get_error(ctx, f"**{member.name}** is not registered!", "addcoins")
 
 
 
