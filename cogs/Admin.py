@@ -14,6 +14,7 @@ class Admin (commands.Cog):
         self.bot = bot
         self.error = self.bot.get_cog("Error")
         self.get = self.bot.get_cog("Get")
+        self.nebula = self.bot.get_cog("Nebulas")
 
     @commands.command(name="remneb",
                       brief="remove a nebula from the database [ADMIN]",
@@ -21,22 +22,25 @@ class Admin (commands.Cog):
                       usage=["[Example] `oremn \"Milky Wars\"` -> removes [Milky Wars]"],
                       hidden=True)
     @commands.check(is_admin)
-    async def remove_nebula_from_db(self, ctx, nebula):
+    async def remove_nebula_from_db(self, ctx, inp):
+        nebula = inp
+        if self.nebula.new_nebula(inp) == True:
+            nebula = None
         try:
             with db.cursor() as cursor:
-                sql = f"DELETE nebulas, nebula_members FROM (nebulas INNER JOIN nebula_members ON nebulas.nebula = nebula_members.nebula) WHERE nebulas.nebula = %s"
+                sql = f"DELETE nebulas, nebula_members FROM nebulas INNER JOIN nebula_members ON nebulas.nebula = nebula_members.nebula WHERE nebulas.nebula = %s"
                 cursor.execute(sql, (nebula))
 
                 sql = f"UPDATE players SET nebula=Null WHERE user_id=%s"
                 cursor.execute(sql, (ctx.author.id))
 
                 db.commit()
-                embed = discord.Embed(title=f"[Successfully removed nebula [{nebula}] from the database",
+                embed = discord.Embed(title=f"[Successfully removed nebula [{inp}] from the database",
                                       color=discord.Color.from_rgb(130, 234, 255))
                 await ctx.send(embed=embed)
         except Exception as e:
-            print(f"Error removing nebula [{nebula}] from the database\n{e}")
-            return await self.error.get_error(ctx, f"nebula [{nebula}] does not exist!", "remneb")
+            print(f"Error removing nebula [{inp}] from the database\n{e}")
+            return await self.error.get_error(ctx, f"nebula [{inp}] does not exist!", "remneb")
 
     @commands.command(name="remu",
                       brief="remove a user from the database [ADMIN]",
