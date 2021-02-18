@@ -92,7 +92,7 @@ async def list_servers():
 bot.load_extension("cogs.Get")
 bot.load_extension("cogs.Error")
 for cog in os.listdir("./cogs"):
-    if cog != "Get.py" and cog != "Error.py":
+    if cog not in ["Get.py", "Error.py"]:
         if cog.endswith(".py"):
             try:
                 cog = f"cogs.{cog.replace('.py', '')}"
