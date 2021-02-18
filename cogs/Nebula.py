@@ -18,7 +18,22 @@ class Nebulas(commands.Cog):
                 cursor.execute(sql, (nebula,))
                 result = cursor.fetchone()
                 if not result:
-                    print(f"Nebula does not exist: {nebula}")
+                    print(f"Nebula does not exist: {nebula} 1")
+                else:
+                    return result
+        except Exception as e:
+            print(f"Error looking up nebula {nebula}\n{e}")
+
+    def get_members(self, member):
+        nebula = self.get.get_nebula(member.id)
+        print(nebula)
+        try:
+            with db.cursor() as cursor:
+                sql = "SELECT `member_ids` FROM `nebula_members` WHERE `nebula`=%s"
+                cursor.execute(sql, (nebula,))
+                result = cursor.fetchone()
+                if not result:
+                    print(f"Nebula does not exist: {nebula} 2")
                 else:
                     return result
         except Exception as e:
@@ -44,37 +59,43 @@ class Nebulas(commands.Cog):
     @commands.group(name="nebula",
                     aliases=["neb"],
                     enabled=True,
-                    brief="Views the info of your nebula",
-                    usage=["[Example] onebula -> Shows you the basic info of your nebula."])
-    async def nebula(self, ctx):
-        if self.get.get_user(ctx.author.id):
-            if ctx.invoked_subcommand is None:
-
-                nebula = self.get.get_nebula(ctx.author.id)
+                    brief="Views the info of a nebula",
+                    usage=["[Example] onebula -> Shows you the basic info of your nebula.", "[Example] onebula @user - > Shows you the basic information of @user's nebula"],
+                    invoke_without_command=True)
+    async def nebula(self, ctx, inp=None):
+        member = ctx.author if not inp else await self.get.get_member(ctx, inp)
+        if member is None:
+            return await self.error.get_error(ctx, f"User {inp} not found", "nebula members")
+        if self.get.get_user(member.id):
+                nebula = self.get.get_nebula(member.id)
                 if nebula is None:
-                    await self.error.get_error(ctx,
-                                               f"{self.get.get_user_type(ctx.author.id)} **{ctx.author.name}**, You are not in a nebula",
-                                               "nebula")
-
+                    if member == ctx.author:
+                        return await self.error.get_error(ctx, f"{self.get.get_user_type(member.id)} **{member.name}**, you are not in a nebula!", "nebula")
+                    else:
+                        return await self.error.get_error(ctx, f"The {self.get.get_user_type(member.id)} **{member.name}** is not in a nebula!", "nebula")
                 else:
                     embed = discord.Embed(title=f"**{nebula} 🌌**", color=discord.Color.from_rgb(130, 234, 255))
-                    # embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+                    # embed.set_author(name=member.name, icon_url=member.avatar_url)
                     # embed.add_field(name=f'Nebula Message', value=". . .")
                     # embed.add_field(name="\u200b", value=f"**Nebula Founder:** \n**Nebula Co-Founder:** \n**Nebula Supervisor:** \n**Nebula Members:**", inline=False)
                     # embed.add_field(name=f'Nebula Blessings <:Up_Arrow:792403744134004736>', value="\u200b")
 
                     await ctx.send(embed=embed)
         else:
-            await self.error.not_registered_error(ctx, "nebula")
+            if member is ctx.author:
+                await self.error.not_registered_error(ctx, "nebula")
+            else:
+                await self.error.get_error(ctx, f"The user **{member.name}** is not registered to this bot!", "nebula")
+
 
     @nebula.command(brief="Create your own nebula")
     async def create(self, ctx, *, nebula: str = None):
         if self.get.get_user(ctx.author.id) is None:
-            return
+            return await self.error.not_registered_error(ctx, "nebula")
 
         in_nebula = self.get.get_nebula(ctx.author.id)
         if in_nebula is not None:
-            return await self.error.get_error(ctx, f"{self.get.get_user_type(ctx.author.id)} **{ctx.author.name}**, You are already in a nebula!", "nebula create")
+            return await self.error.get_error(ctx, f"{self.get.get_user_type(ctx.author.id)} **{ctx.author.name}**, you are already in a nebula!", "nebula create")
 
         if nebula is None:
             return await self.error.get_error(ctx, "You must enter a name for your nebula", "nebula create")
@@ -97,7 +118,7 @@ class Nebulas(commands.Cog):
             return await self.error.get_error(ctx, "This guild already has a nebula", "nebula create")
 
         if new_nebula is False:
-            return await self.error.get_error(ctx,f"the nebula \"{nebula}\" is already taken", "nebula create")
+            return await self.error.get_error(ctx,f"The nebula \"{nebula}\" is already taken", "nebula create")
 
         embed = discord.Embed(title="Confirmation",
                               description=f"{self.get.get_user_type(ctx.author.id)}, are you sure you want to create the **{nebula}** nebula for __250,000__ coins?",
@@ -155,13 +176,26 @@ class Nebulas(commands.Cog):
             elif str(reaction.emoji) == "❌":
                 await msg.delete(delay=0)
 
-    @nebula.command()
-    async def view(self, ctx, member: discord.Member = None):
-        member = ctx.author if not member else member
-        if self.get.get_user(ctx.author.id) is None:
-            return
-        await ctx.send("second command layer")
-        pass
+    @nebula.command(name="members",
+                    aliases=["mems"],
+                    enabled=True,
+                    brief="Views the member list of a nebula",
+                    usage=["[Example] onebula members-> Shows you the members of your own nebula.", "[Example] onebula members @user -> shows you the members of @user's nebula"],
+                    description="[WIP]")
+    async def members(self, ctx, inp=None):
+        member = ctx.author if not inp else await self.get.get_member(ctx, inp)
+        if member is None:
+            return await self.error.get_error(ctx, f"User {inp} not found", "nebula members")
+
+        if self.get.get_user(member.id) is None:
+            if member is ctx.author:
+                return await self.error.not_registered_error(ctx, "nebula members")
+            else:
+                return await self.error.get_error(ctx, f"The user **{member.name}** is not registered to this bot!", "nebula members")
+
+        members = self.get_members(member).values()
+
+        await ctx.send(members)
 
 
 def setup(bot):
