@@ -21,24 +21,5 @@ class Test(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(hidden=True, Enabled=False)
-    async def ctest(self, ctx):
-
-        def check(m):
-            boop = m.author.id == 571027211407196161
-            guild = m.guild == ctx.guild
-            return (boop==True and guild == True)
-
-        msg = await self.bot.wait_for('message', check=check)
-        embed = msg.embeds[0]
-        while embed.description != "*A wild anime card appears!*":
-            msg = await self.bot.wait_for('message', check=check)
-            embed = msg.embeds[0]
-        junk=embed.footer.text
-        junk=junk.split(" ")
-        # await ctx.send(embed=embed)
-        await ctx.send(junk)
-        await ctx.send(junk[2])
-
 def setup(bot):
     bot.add_cog(Test(bot))
