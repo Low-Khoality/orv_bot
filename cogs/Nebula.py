@@ -223,8 +223,8 @@ class Nebulas(commands.Cog):
                         sql = "INSERT INTO `nebulas` (nebula, guild_id, message, leader, vice_leader) VALUES (%s, %s, %s, %s, %s)"
                         cursor.execute(sql, (nebula, ctx.guild.id, None, ctx.author.id, None,))
 
-                        sql = "INSERT INTO `nebula_members` (nebula, member_ids, nebula_rank, contribution) VALUES (%s, %s, %s, %s)"
-                        cursor.execute(sql, (nebula, ctx.author.id, 3, 0))
+                        sql = "INSERT INTO `nebula_members` (nebula, member_ids, nebula_rank, nebula_ranking, contribution) VALUES (%s, %s, %s, %s, %s)"
+                        cursor.execute(sql, (nebula, ctx.author.id, 3, 1, 0))
 
                         sql = f"UPDATE players SET nebula=%s, coins=%s WHERE user_id=%s"
                         cursor.execute(sql, (nebula, self.get.get_coins(ctx.author.id)-250000, ctx.author.id))
@@ -276,37 +276,47 @@ class Nebulas(commands.Cog):
         if total_members <= 10:
             return
 
-        await msg.add_reaction("⬅️")
-        await asyncio.sleep(.35)
-        await msg.add_reaction("➡️")
-        await asyncio.sleep(.35)
-        await msg.add_reaction("🗑️")
-        done = False
-
+        reactions = ["⬅️", "➡️", "🗑️"]
+        for x in reactions:
+            await msg.add_reaction(x)
+            await asyncio.sleep(.35)
         total_pages = total_members//10 if total_members % 10 == 0 else total_members//10+1
 
-        while not done:
-            def check(reaction, user):
-                return ctx.author == user and str(reaction.emoji) in ["⬅️", "➡️", "🗑️"]
+        paging = True
+        page = 1
 
+        # paginator
+
+        while paging:
+            def check(payload):
+                return str(payload.emoji) in reactions
             try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=10.0, check=check)
-            except asyncio.TimeoutError:
-                done = True
+                pending_tasks = [self.bot.wait_for('raw_reaction_add', check=check),
+                                 self.bot.wait_for('raw_reaction_remove', check=check)]
+
+                done_tasks, pending_tasks = await asyncio.wait(pending_tasks, timeout=7.0, return_when=asyncio.FIRST_COMPLETED)
+                payload = done_tasks.pop().result()
+                user = await commands.MemberConverter().convert(ctx, str(payload.user_id))
+            except KeyError:
+                paging = False
+                return
             else:
-                if str(reaction.emoji) == "🗑️":
-                    return await msg.delete(delay=0)
-                if str(reaction.emoji) == "⬅️":
-                    if page == 1:
-                        page = total_pages
-                    else:
-                        page -= 1
-                if str(reaction.emoji) == "➡️":
-                    if page == total_pages:
-                        page = 1
-                    else:
-                        page += 1
-            await msg.edit(embed=await self.get_member_list(ctx, member, page))
+                if user == ctx.author:
+                    if str(payload.emoji) == "🗑️":
+                        return await msg.delete(delay=0)
+                    if str(payload.emoji) == "⬅️":
+                        if page == 1:
+                            page = total_pages
+                        else:
+                            page -= 1
+                    if str(payload.emoji) == "➡️":
+                        if page == total_pages:
+                            page = 1
+                        else:
+                            page += 1
+                    await msg.edit(embed=await self.get_member_list(ctx, member, page))
+
+
 
 
 def setup(bot):
